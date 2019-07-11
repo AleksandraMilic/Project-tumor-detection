@@ -3,10 +3,9 @@ import numpy as np
 import glob  
 from PIL import Image 
 from noise_reduction import median_3x3
-from image_enchancement import gammaTransform
+from image_enhancement import gammaTransform
 
 
-#if __name__ == "__main__":
 
 path = 'D:\Project-tumor-detection\slike\\tumor library\\femur\*.jpg'   
 
@@ -24,7 +23,7 @@ for filename_1, filename_2 in zip(files_1, files_2):
     #cv2.waitKey(0)
 
 
-#def preprocessing_image()
+
 
 
 
