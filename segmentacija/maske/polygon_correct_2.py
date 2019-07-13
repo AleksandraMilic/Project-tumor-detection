@@ -5,12 +5,12 @@ from histogram import ColorWin
 
 ##################### izmena - bez zasebne f-j dobijanje crnih px
 
-def CreateWindow(image, h, w, PATCH_SIZE):
+def CreateWindow(image, height, width, PATCH_SIZE):
     """kreiranti patch za svaki px i bojiti ga u belu boju, ako belih px ima vise """
 
-    for i in range(h):
-        for j in range(w):
-            if i < h-PATCH_SIZE+1 and j < w-PATCH_SIZE+1: #i[0] > PATCH_SIZE-1, j[1] > PATCH_SIZE-1 #########bez +1
+    for i in range(height):
+        for j in range(width):
+            if i < height-PATCH_SIZE+1 and j < width-PATCH_SIZE+1: #i[0] > PATCH_SIZE-1, j[1] > PATCH_SIZE-1 #########bez +1
                 win = image[i:i + PATCH_SIZE, j:j + PATCH_SIZE]
                 #print("win",win)
                 #print("img",image)
@@ -55,9 +55,9 @@ if __name__ == "__main__":
     w = np.size(image, 1)
     
     """
-    w=400
-    h=400
-    image=np.zeros((h,w), np.uint8)
+    width = 400
+    height = 400
+    image=np.zeros((height,width), np.uint8)
     #pts = np.array([[50,50],[150,50],[50,150],[150,150],[90,90],[75,75]], np.int32)
 
     for i in range(h):
