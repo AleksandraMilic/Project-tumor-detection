@@ -3,7 +3,8 @@ import numpy as np
 from roi_polygon import SetPixels, GetPolygon, preprocess_array, dilation_func
 from PIL import Image
 import os
-
+from histogram import BlackPointsNumber_2
+import time
 
 #image = cv2.imread(r'D:\Project-tumor-detection\slike\edges\edge 714-2.jpg') 
 #height = np.size(image, 0)
@@ -23,7 +24,7 @@ def GetWindows(image, pts, h, w, PATCH_SIZE):
     #create window 50x50
 #    print(pts)
     for i in pts:
-        if i[0] > PATCH_SIZE-1 and i[0] < h-PATCH_SIZE+1 and i[1] > PATCH_SIZE-1 and i[1] < w-PATCH_SIZE+1: # radi??
+        if i[0] > PATCH_SIZE-1 and i[0] < h-PATCH_SIZE+1 and i[1] > PATCH_SIZE-1 and i[1] < w-PATCH_SIZE+1: # radi?? #########bez +1???
             win = image[i[0]:i[0] + PATCH_SIZE, i[1]:i[1] + PATCH_SIZE]
             pts_win.append(win)
             pts_2.append(i)  
@@ -41,7 +42,7 @@ def GetWindows(image, pts, h, w, PATCH_SIZE):
 
 
 
-def BlackPointsNumber(pts_win, PATCH_SIZE): ######### radi ?
+def BlackPointsNumber(pts_win, PATCH_SIZE): ################ koristiti histogram  
     """returns a list of numbers of black pixel in one window. """
     ####???##########
     win_px_number = [] #black pixels in window
@@ -56,7 +57,7 @@ def BlackPointsNumber(pts_win, PATCH_SIZE): ######### radi ?
                 #print(px) 
 
 ####################################################### boja ivica
-                if (px == 0).all(): #np.array_equal(px, np.array([0, 0, 0])): 
+                if (px == 255).all(): #np.array_equal(px, np.array([0, 0, 0])): 
                     black_px_number += 1 
 
         win_px_number.append(black_px_number)
@@ -106,52 +107,45 @@ def CreateNewPoints(pts_win, win_px_number, average_px_number, pts_2):
     
     return pts2
 
-#def GetROI(pts2, image):
-    
-    
-    #print("TYPE PTS!!!!",type(pts2))
 
-#   ROI = GetPolygon(pts2, image)
-
-#    print("win_px_number", win_px_number)
-#    print("average_px_number", average_px_number)
-
-#  return ROI
 
 
 def CleanImage(image, pts2):
     
-    """ Image with pixels in array pts2
+    """ 
     parameters: 
-    pts - first list of black pixels in polygon
+    image
+    pts2 - new list of black pixels in polygon
     """
     h2 = np.size(image, 0)
     w2 = np.size(image, 1)
 
-    image=np.zeros((h,w), np.uint8)
-    for i in range(h):
-        for j in range(w):
-            image[i][j] = 255
+    image=np.zeros((h2, w2), np.uint8)
+    #for i in range(h):
+     #   for j in range(w):
+      #      image[i][j] = 255
 
 ##################boja piksela
     for i in pts2:
-        image[i[0],i[1]] = 0
-    
+        image[i[0],i[1]] = 255    
     cv2.imwrite('D:\Project-tumor-detection\segmentacija\maske\patch_size\size 40 (clean) - Copy.jpg', image)
 
-    cv2.imshow('img', image)
-    cv2.waitKey(0)
+    #cv2.imshow('img', image)
+    #cv2.waitKey(0)
     return image
+    
 
 
 def main():
 
-    image = cv2.imread(r'D:\Project-tumor-detection\slike\edges\gsa 806.jpg')
+    image = cv2.imread(r'D:\\Project-tumor-detection\\preprocesiranje\\preprocessed-images-edges\\801.jpg') # bez parametra 0!!!!!!!!
+    print(image)
     h = np.size(image, 0)
     w = np.size(image, 1)
 
+
     PATCH_SIZE_list = [10, 15, 20, 25, 30, 35, 40, 45, 50]  
-    image_name = ['size 10','size 15', 'size 20', 'size 25', 'size 30', 'size 35', 'size 40', 'size 45', 'size 50'] 
+    image_name = ['size 10', 'size 15', 'size 20', 'size 25', 'size 30', 'size 35', 'size 40', 'size 45', 'size 50'] 
     #PATCH_SIZE = 30
 
     r = 0
@@ -162,27 +156,45 @@ def main():
     
 
         pts_array, pts, img1 = SetPixels(image)
-
+        print("SetPixels")
+        print(time.time())
+        
         pts_win, pts_2 = GetWindows(image, pts, h, w, PATCH_SIZE)
+        print("GetWindows")
+        print(time.time())
 
-        win_px_number = BlackPointsNumber(pts_win, PATCH_SIZE)  ### ne radi #?
+        win_px_number = BlackPointsNumber_2(pts_win, image)      # umesto BlackPointsNumber(pts_win, PATCH_SIZE)  ### optimizovati (koristiti histogram)
+        print("BlackPointsNumber_2")
+        print(time.time())
+        
         average_px_number = AveragePixelNumber(win_px_number)
+        print("AveragePixelNumber")
+        print(time.time())
+
         pts2 = CreateNewPoints(pts_win, win_px_number, average_px_number, pts_2)
+        print("CreateNewPoints")
+        print(time.time())
+
         ret1, bin_image = cv2.threshold(image,100,255,cv2.THRESH_BINARY)
         
 
         #DILATION!!!!
-        bin_image = dilation_func(bin_image)
+        #bin_image = dilation_func(bin_image)
 
         new_image = GetPolygon(pts2, bin_image)    
         #newImg1.PIL.save("img1.png")
+        print("GetPolygon")
+        print(time.time())
 
         name_new_image = "D:\\Project-tumor-detection\\segmentacija\\maske\patch_size\\" + image_name[r] + ".jpeg"
         #new_image.save(name_new_image)
-
-        #cv2.imwrite(os.path.join(path, "\\", image_name[r], ".jpeg"), new_image)
-
         cv2.imwrite(name_new_image, new_image)
+        #cv2.imwrite(os.path.join(path, "\\", image_name[r], ".jpeg"), new_image)
+        
+        CleanImage(image, pts2)
+        print("CleanImage", i)
+        print(time.time())
+        
         r += 1
 
 
@@ -192,11 +204,15 @@ def main():
 
 
 if __name__ == "__main__" :
-    image = cv2.imread(r'D:\Project-tumor-detection\segmentacija\maske\patch_size\size 40 (clean).jpg')
+    main()
+    
+
+    """
+    image = cv2.imread(r'D:\Project-tumor-detection\segmentacija\canny python\normal bones\age-50-m2.jpg')
     h = np.size(image, 0)
     w = np.size(image, 1)
 
-    """
+    
     w=400
     h=400
     image=np.zeros((h,w), np.uint8)
@@ -211,19 +227,18 @@ if __name__ == "__main__" :
     image[60,80]=0
     image[65,85]=0
     image[50,80]=0
-
+    
     cv2.imshow('img', image)
     cv2.waitKey(0)
-    """
 
-    PATCH_SIZE = 40
+    PATCH_SIZE = 20
 
     
     pts_array, pts, img1 = SetPixels(image)
 
     pts_win, pts_2 = GetWindows(image, pts, h, w, PATCH_SIZE)
 
-    win_px_number = BlackPointsNumber(pts_win, PATCH_SIZE)  ### ne radi #?
+    win_px_number = BlackPointsNumber(pts_win, PATCH_SIZE) 
     average_px_number = AveragePixelNumber(win_px_number)
     pts2 = CreateNewPoints(pts_win, win_px_number, average_px_number, pts_2)
     ret1, bin_image = cv2.threshold(image,100,255,cv2.THRESH_BINARY)
@@ -233,12 +248,14 @@ if __name__ == "__main__" :
     #bin_image = dilation_func(bin_image)
 
     new_image = GetPolygon(pts2, bin_image)
+    cv2.imshow("img", new_image)
+    cv2.waitKey(0)
     CleanImage(image, pts2)
 
 
     
 
-
+"""
 """
         if p == 0:        
             black_px_number += 1

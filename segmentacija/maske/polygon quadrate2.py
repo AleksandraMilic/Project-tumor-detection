@@ -10,6 +10,7 @@ def preprocess_array(arr):
     return to_return
 
 def main():
+
     w=400
     h=400
     image=np.zeros((h,w), np.uint8)

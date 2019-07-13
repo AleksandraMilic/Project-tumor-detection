@@ -1,6 +1,7 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from roi_polygon import SetPixels
 
 def drawlines(img, points):
     points_array = np.array(points)
@@ -59,37 +60,41 @@ def convex_hull(points):
 
 
 # Make empty black image
-w=400
-h=400
-image=np.zeros((h,w), np.uint8) #h,w,3
+#w=400
+#h=400
+#image=np.zeros((h,w), np.uint8) #h,w,3
 
 #points
-pts = np.array([[50,70],[50,80],[70,70],[70,90],[50,90],[60,80],[65,85]], np.int32)
+#pts = np.array([[50,70],[50,80],[70,70],[70,90],[50,90],[60,80],[65,85]], np.int32)
+image = cv2.imread(r'D:\Project-tumor-detection\slike\edges\gsa 806.jpg')
+points_array, pts, image_2 = SetPixels(image)
+
+
 
 # Change pixels
-image[50,70]=255
-image[70,70]=255
-image[70,90]=255
-image[50,90]=255
-image[60,80]=255
-image[65,85]=255
-image[50,80]=255
+#image[50,70]=255
+#image[70,70]=255
+#image[70,90]=255
+#image[50,90]=255
+#image[60,80]=255
+#image[65,85]=255
+#image[50,80]=255
 
 cv2.imshow('img1', image)
 
 
 hull = convex_hull(pts)
 for i in range(1, len(hull)):
-    cv2.line(image,hull[i-1],hull[i],(255,0,0),1)
+    cv2.line(image_2,hull[i-1],hull[i],(255,0,0),1)
 
-cv2.line(image,hull[-1],hull[0],(255,0,0),1)
+cv2.line(image_2,hull[-1],hull[0],(255,0,0),1)
 
 
 #hull = cv2.convexHull(pts)
 #img2 = cv2.fillConvexPoly(image, hull, (255,255,255), lineType=8, shift=0) 
 
 
-cv2.imshow('img2', image)
+cv2.imshow('img2', image_2)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
