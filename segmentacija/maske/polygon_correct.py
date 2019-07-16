@@ -5,6 +5,15 @@ from PIL import Image
 import os
 from histogram import BlackPointsNumber_2
 import time
+import scipy.interpolate as inter
+import warnings #polyfit --- spline
+import matplotlib.pyplot as plt
+
+from polyfit_spline import curve_fit 
+from calc_angle import centroid, calc_angle
+
+warnings.simplefilter('ignore', np.RankWarning)
+
 
 #image = cv2.imread(r'D:\Project-tumor-detection\slike\edges\edge 714-2.jpg') 
 #height = np.size(image, 0)
@@ -115,30 +124,30 @@ def CleanImage(image, pts2):
     """ 
     parameters: 
     image
-    pts2 - new list of black pixels in polygon
+    pts2 - list of black pixels in polygon
     """
     h2 = np.size(image, 0)
     w2 = np.size(image, 1)
 
-    image=np.zeros((h2, w2), np.uint8)
+    image=np.zeros((h2, w2), np.uint8) #kreiranje nove slike bele boje, na kojoj se dodaju crni(beli) px iz pts2
     #for i in range(h):
-     #   for j in range(w):
-      #      image[i][j] = 255
+    #   for j in range(w):
+    #      image[i][j] = 255
 
 ##################boja piksela
     for i in pts2:
         image[i[0],i[1]] = 255    
-    cv2.imwrite('D:\Project-tumor-detection\segmentacija\maske\patch_size\size 40 (clean) - Copy.jpg', image)
+    #v2.imwrite('D:\Project-tumor-detection\segmentacija\maske\patch_size\size 40 (clean) - Copy.jpg', image)
 
-    #cv2.imshow('img', image)
-    #cv2.waitKey(0)
+    cv2.imshow('img', image)
+    cv2.waitKey(0)
     return image
     
 
 
 def main():
 
-    image = cv2.imread(r'D:\\Project-tumor-detection\\preprocesiranje\\preprocessed-images-edges\\801.jpg') # bez parametra 0!!!!!!!!
+    image = cv2.imread(r'D:\Project-tumor-detection\segmentacija\maske\patch_size\\801.jpg') # bez parametra 0!!!!!!!!
     print(image)
     h = np.size(image, 0)
     w = np.size(image, 1)
@@ -163,7 +172,7 @@ def main():
         print("GetWindows")
         print(time.time())
 
-        win_px_number = BlackPointsNumber_2(pts_win, image)      # umesto BlackPointsNumber(pts_win, PATCH_SIZE)  ### optimizovati (koristiti histogram)
+        win_px_number = BlackPointsNumber_2(pts_win, image)  ######## umesto BlackPointsNumber(pts_win, PATCH_SIZE)  ### optimizovati (koristiti histogram)
         print("BlackPointsNumber_2")
         print(time.time())
         
@@ -186,9 +195,9 @@ def main():
         print("GetPolygon")
         print(time.time())
 
-        name_new_image = "D:\\Project-tumor-detection\\segmentacija\\maske\patch_size\\" + image_name[r] + ".jpeg"
+        #name_new_image = "D:\\Project-tumor-detection\\segmentacija\\maske\patch_size\\" + image_name[r] + ".jpeg"
         #new_image.save(name_new_image)
-        cv2.imwrite(name_new_image, new_image)
+        #cv2.imwrite(name_new_image, new_image)
         #cv2.imwrite(os.path.join(path, "\\", image_name[r], ".jpeg"), new_image)
         
         CleanImage(image, pts2)
@@ -199,20 +208,42 @@ def main():
 
 
 
+def Get_X_Y_coordinate(array_hull):
+#######################   OBRNUTE KOORDINATE    ########################
+    x_coordinate = []
+    y_coordinate = []
+    for i in array_hull:
+
+        x_coordinate.append(i[0])
+        y_coordinate.append(i[1])
+    
+    return x_coordinate, y_coordinate
 
 
+def erosion_func(img):
+    """It erodes away the boundaries of foreground object.
+    3x3 kernel"""
+    kernel = np.ones((2,2),np.uint8)
+    erosion = cv2.erode(img,kernel,iterations = 1)
+    #img2 = cv2.imwrite('D:\Petnica projekat\edge detection\gsa2 - 1.jpg',erosion)
+    
+    return erosion
 
 
 if __name__ == "__main__" :
-    main()
+    #main()
     
 
-    """
-    image = cv2.imread(r'D:\Project-tumor-detection\segmentacija\canny python\normal bones\age-50-m2.jpg')
+    
+    image = cv2.imread(r'D:\Project-tumor-detection\segmentacija\maske\patch_size\4127.jpg')
+    cv2.imshow('img2', image)
+    cv2.waitKey(0)
+    
+    
     h = np.size(image, 0)
     w = np.size(image, 1)
 
-    
+    """
     w=400
     h=400
     image=np.zeros((h,w), np.uint8)
@@ -227,49 +258,208 @@ if __name__ == "__main__" :
     image[60,80]=0
     image[65,85]=0
     image[50,80]=0
-    
-    cv2.imshow('img', image)
-    cv2.waitKey(0)
+    """
+
 
     PATCH_SIZE = 20
 
     
     pts_array, pts, img1 = SetPixels(image)
+    print("SetPixels")
 
     pts_win, pts_2 = GetWindows(image, pts, h, w, PATCH_SIZE)
-
+    print("GetWindow")
+    
     win_px_number = BlackPointsNumber(pts_win, PATCH_SIZE) 
+    print("BlackPointsNumber")
+
     average_px_number = AveragePixelNumber(win_px_number)
+    print("AveragePixelNumber")
+
     pts2 = CreateNewPoints(pts_win, win_px_number, average_px_number, pts_2)
+    print("CreateNewPoints")
+
     ret1, bin_image = cv2.threshold(image,100,255,cv2.THRESH_BINARY)
     
 
-    #DILATION!!!!
-    #bin_image = dilation_func(bin_image)
+    ####################  DILATION!!!!
+    
 
-    new_image = GetPolygon(pts2, bin_image)
-    cv2.imshow("img", new_image)
+    new_image, array_hull = GetPolygon(pts2, bin_image)
+    print("GetPolygon")
+
+    cv2.imshow("img3", new_image)
     cv2.waitKey(0)
-    CleanImage(image, pts2)
-
-
+    clean_im = CleanImage(image, pts2)
+    print("CleanImage")
     
+    print(array_hull) ########### koordinate temena poligona
 
-"""
-"""
-        if p == 0:        
-            black_px_number += 1
-    win_px_number.append(black_px_number) 
-#print(pts_win)
-#print("win_px_number", win_px_number)
 
- 
-for i in win_px_number:
-    average_px_number += i
+#######################   OBRNUTE KOORDINATE    #######################
+    #x_coordinate, y_coordinate = Get_X_Y_coordinate(array_hull)
+    #print("Get_X_Y_coordinate")
 
-average_px_number = average_px_number / len(win_px_number)
 
-print(average_px_number) 
-"""
 
+############################ POLYFIT #################################
+    print("spline")
+    for i in array_hull:
+        x_coord = i[0]
+        y_coord = i[1]
     
+        plt.plot(x_coord, y_coord, 'ro', ms='5')
+    
+    center = centroid(array_hull)
+    new_pts = calc_angle(pts2, center)
+    curve_fit(new_pts)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    """
+    x = []
+    y = []
+
+    for i in pts2:
+        x.append(i[0])
+        y.append(i[1])
+
+    plt.plot(x, y, 'ro', ms=5)
+    #plt.show()
+
+
+
+    xmin, xmax = min(x), max(x) 
+    ymin, ymax = min(y), max(y)
+
+    n = len(x)
+    plotpoints = 100
+
+    k = 3
+
+    knotspace = range(n)
+    knots = inter.InterpolatedUnivariateSpline(knotspace, knotspace, k=k).get_knots()
+    print("knots")
+    knots_full = np.concatenate(([knots[0]]*k, knots, [knots[-1]]*k))
+    print("knots_full")
+
+    tX = knots_full, x, k
+    tY = knots_full, y, k
+
+    splineX = inter.UnivariateSpline._from_tck(tX)
+    splineY = inter.UnivariateSpline._from_tck(tY)
+
+    tP = np.linspace(knotspace[0], knotspace[-1], plotpoints)
+
+
+    xP = splineX(tP)
+    yP = splineY(tP)
+
+    plt.plot(xP, yP, 'g', lw=5)
+
+    plt.show()
+
+    """
+    
+    
+    """
+    x = []
+    y = []
+
+    for i in pts2:
+        x.append(i[0])
+        y.append(i[1])
+
+    plt.plot(x, y, 'ro', ms=5)
+    plt.show()
+
+
+
+    xmin, xmax = min(x), max(x) 
+    ymin, ymax = min(y), max(y)
+
+    n = len(x)
+    plotpoints = 100
+
+
+
+    knotspace = range(n)
+    knots = si.InterpolatedUnivariateSpline(knotspace, knotspace, k=k).get_knots()
+    print("knots")
+    knots_full = np.concatenate(([knots[0]]*k, knots, [knots[-1]]*k))
+    print("knots_full")
+
+    tX = knots_full, x, k
+    tY = knots_full, y, k
+
+    splineX = si.UnivariateSpline._from_tck(tX)
+    splineY = si.UnivariateSpline._from_tck(tY)
+
+    tP = np.linspace(knotspace[0], knotspace[-1], plotpoints)
+    xP = splineX(tP)
+    yP = splineY(tP)
+    """
+
+
+     
+    #f = np.polyfit(y_coordinate, x_coordinate, deg) ###, rcond=None, full=False, w=None, cov=False)
+    #f = np.poly1d(z)
+    #print f
+    ###
+    #p = np.poly2d(f)
+    #print(f)
+
+    #t = np.linspace(0, 16, 50)
+    #plt.plot(y_coordinate, x_coordinate, 'o', t, p(t), '-')
+    #plt.show()
+    
+    ########## pts2 - lista koordinata px, len(pts2) - broj px
+
+    """
+    print("start polyfit spline")
+
+    n = len(pts2)
+        
+    x_coordinate = []
+    y_coordinate = []
+
+    for i in pts2:
+        x_coordinate.append(i[0])
+        y_coordinate.append(i[1])
+
+    plt.plot(x_coordinate, y_coordinate, 'ro', ms=5)
+    #plt.show()
+
+    print(x_coordinate)
+    print(y_coordinate)
+
+    t1 = np.arange(0, n)  # za 3. parametar 0,01 - ValueError: 0-th dimension must be fixed to 500 but got 5
+
+
+    # UnivariateSplineFits --- a spline y = spl(x) of degree k to the provided x, y data.
+
+
+    spl_1 = UnivariateSpline(t1, x_coordinate, k=2)
+    spl_2 = UnivariateSpline(t1, y_coordinate, k=2)
+
+    # plot
+    for t in np.linspace(0, n, 10):
+        #xs = np.linspace(0, n, 100)
+        
+        x = spl_1(t)
+        y = spl_2(t)
+        
+        plt.plot(x, y, 'g', lw=5)
+
+    plt.show()
+
+    """
