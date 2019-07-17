@@ -5,7 +5,6 @@ import warnings
 
 
 
-pts2 = [(404, 699), (393, 673), (344, 227), (351, 57), (51, 54), (400, 99), (93, 673), (34, 22), (51, 157), (551, 354)]
 
 def curve_fit(pts2):
     #n = len(coord)
@@ -16,43 +15,46 @@ def curve_fit(pts2):
     for i in pts2:
         x.append(i[0])
         y.append(i[1])
-
+    x.append(x[0])
+    y.append(y[0])
     plt.plot(x, y, 'ro', ms=5)
-    #plt.show()
+    plt.show()
 
 
 
     xmin, xmax = min(x), max(x) 
     ymin, ymax = min(y), max(y)
 
-    n = len(x)
-    plotpoints = 100000 #100
+    n = len(x)-1
+    plotpoints = 1000 #100
 
-    k = 2 #
+    k = 3 #
 
-    knotspace = range(n)
-    knots = inter.InterpolatedUnivariateSpline(knotspace, knotspace, k=k).get_knots()
-    print("knots", knots)
-    knots_full = np.concatenate(([knots[0]]*k, knots, [knots[-1]]*k))
-    print("knots_full", knots_full)
+    knotspace = range(n+1)
+    #knots = inter.InterpolatedUnivariateSpline(knotspace, knotspace, k=k).get_knots()
+    #print("knots", knots)
+    #knots_full = np.concatenate(([knots[0]]*k, knots, [knots[-1]]*k))
+    #print("knots_full", knots_full)
 
-    tX = knots_full, x, k
-    tY = knots_full, y, k
+    #tX = knots_full, x, k
+    #tY = knots_full, y, k
 
-    splineX = inter.UnivariateSpline._from_tck(tX)
-    splineY = inter.UnivariateSpline._from_tck(tY)
+    splineX = inter.UnivariateSpline(knotspace, x, k=k)
+    splineY = inter.UnivariateSpline(knotspace, y, k=k)
 
-    tP = np.linspace(knotspace[0], knotspace[-1], plotpoints)
+    tP = np.linspace(0, n, plotpoints)
 
 
     xP = splineX(tP)
     yP = splineY(tP)
 
+    #print('xP', xP)
+
     plt.plot(xP, yP, 'g', lw=5)
 
     plt.show()
 
-    return
+    return xP, yP
 
 
 if __name__ == "__main__":
