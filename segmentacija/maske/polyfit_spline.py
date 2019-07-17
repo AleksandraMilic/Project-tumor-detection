@@ -18,7 +18,7 @@ def curve_fit(pts2):
     x.append(x[0])
     y.append(y[0])
     plt.plot(x, y, 'ro', ms=5)
-    plt.show()
+    #plt.show()
 
 
 
