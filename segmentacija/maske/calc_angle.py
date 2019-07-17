@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import scipy.interpolate as inter
-import numpy as np
 import warnings
 from polyfit_spline import curve_fit 
+import numpy as np
 
 def centroid(polygon):
     
@@ -12,15 +12,16 @@ def centroid(polygon):
     x = sum(x_list) / _len
     y = sum(y_list) / _len
 
-    print(x, y)
-    #plt.plot(x, y, 'bo', ms='5')
-    #plt.show()
+    #print(x, y)
+    plt.plot(x, y, 'bo', ms='5')
     center = (x, y)
+    
     return center
 
 
 def calc_angle(pts2, center):
     """ returns array of angles for each coordinates in pts2"""
+    
     x_center = center[0]
     y_center = center[1]
     
@@ -31,22 +32,24 @@ def calc_angle(pts2, center):
     for i in pts2:
         xi = i[0]
         yi = i[1]
-        x = abs(x_center - xi)
-        y = abs(y_center - yi)
+        x = xi - x_center 
+        y = yi - y_center 
 
         angle = np.arctan(y/x)
+        if x < 0:
+            angle += np.pi
         #pts_angle.append(angle)
         pts_dict[angle] = i
 
     
     pts_list = sorted(pts_dict.items())
-    print(pts_list)
+    #print(pts_list)
 
     for i in pts_list:
         new_pts2.append(i[1])
 
-    print(new_pts2)
-#new_pts2 = sorted(pts2, key=calc_angle(pts2))
+    #print(new_pts2)
+    #new_pts2 = sorted(pts2, key=calc_angle(pts2)) ########3
 
 
     return new_pts2
@@ -55,6 +58,7 @@ def calc_angle(pts2, center):
 if __name__ == "__main__":
     
     pts2 = [(404, 699), (393, 673), (344, 227), (351, 57), (51, 54), (400, 99), (93, 673), (34, 22), (51, 157), (551, 354)]
+    
     for i in pts2:
         x_coord = i[0]
         y_coord = i[1]
