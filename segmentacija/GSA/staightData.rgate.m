@@ -69,3 +69,7 @@ if PLOT_OUTPUTS
     title('Final wiggles after calculation of a normal distance from the polynomial fit')
 end
 
+
+img = '524 pagetic sarcoma'
+polydegree = 5
+[fxys2, fxys] = staightData(img, polyDegree)

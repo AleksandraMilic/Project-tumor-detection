@@ -4,7 +4,6 @@ import numpy as np
 
 #img="D:\Project-tumor-detection\slike\edges\edge 714-2.jpg"
 #img = cv2.imread(img)
-
 def erosion_func(img):
     """It erodes away the boundaries of foreground object.
     3x3 kernel"""
@@ -13,6 +12,7 @@ def erosion_func(img):
     #img2 = cv2.imwrite('D:\Petnica projekat\edge detection\gsa2 - 1.jpg',erosion)
     
     return erosion
+
 
 
 def dilation_func(img):

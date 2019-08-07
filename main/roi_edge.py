@@ -12,13 +12,13 @@ from calc_angle import centroid, calc_angle
 warnings.simplefilter('ignore', np.RankWarning)
 np.seterr(over='ignore')
 
-def roi_edge_1(im):
+def roi_edge_1(filename_1):
     #clean_im, pts2 = main()
 
     # for filename_1, filename_2 in zip(files_1, files_2):
         #filename = 'D:\\Project-tumor-detection\\slike\\test\\roi\\canny\\.jpg'
-    
-    
+    print(filename_1)
+    im = cv2.imread(filename_1)
     h = np.size(im, 0)
     w = np.size(im, 1)
 
@@ -66,8 +66,8 @@ def roi_edge_1(im):
 
     clean_img = CleanImage(im_2,pts_new)
     #    cv2.imwrite(filename, clean_img)
-    cv2.imshow("clean", clean_img)
-    cv2.waitKey(0)
+    # cv2.imshow("clean", clean_img)
+    # cv2.waitKey(0)
 
 
     print("curve_fit")
@@ -120,6 +120,5 @@ if __name__ == "__main__":
     files_1 = glob.glob('D:\\Project-tumor-detection\\slike\\test\\roi2\\*.jpg')
     files_2 = glob.glob('D:\\Project-tumor-detection\\slike\\test\\hough-roi\\*.jpg')
     for filename_1 in files_1:
-        im = cv2.imread(filename_1)
-        im = roi_edge_1(im)
+        im = roi_edge_1(filename_1)
         cv2.imwrite(filename_1, im)

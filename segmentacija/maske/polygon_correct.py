@@ -42,7 +42,7 @@ def GetWindows(image, pts, h, w, PATCH_SIZE):
             pts_win.append(win)
             pts_2.append(i)  
 
- 
+
 #    print(pts_win[0][0])
 #    print("len pts_win", len(pts_win))
 #    print("pts_win",pts_win)
@@ -60,7 +60,7 @@ def BlackPointsNumber(pts_win, PATCH_SIZE): ################ koristiti histogram
     ####???##########
     win_px_number = [] #black pixels in window
     black_px_number = 0 
-#    print("pts win!!!",pts_win)
+    #print("pts win!!!",pts_win)
 
     for win in pts_win:
         #print(win) ### []
@@ -70,13 +70,14 @@ def BlackPointsNumber(pts_win, PATCH_SIZE): ################ koristiti histogram
                 #print(px) 
 
 ####################################################### boja ivica
-                if (px == 255).all(): #np.array_equal(px, np.array([0, 0, 0])): 
+#                if (px == 255).all(): #np.array_equal(px, np.array([0, 0, 0])): 
+                if (px == True).all():
                     black_px_number += 1 
 
         win_px_number.append(black_px_number)
         black_px_number = 0 
         
-#    print(win_px_number)
+    #print(win_px_number)
     return win_px_number #list of numbers of black pixels in windows 
 
 
@@ -123,28 +124,29 @@ def CreateNewPoints(pts_win, win_px_number, average_px_number, pts_2):
 
 
 
-def CleanImage(image, pts2):
+def CleanImage(pts2,h,w):
     
     """ 
     parameters: 
     image
     pts2 - list of black pixels in polygon
     """
-    h2 = np.size(image, 0)
-    w2 = np.size(image, 1)
 
-    image=np.zeros((h2, w2), np.uint8) #kreiranje nove slike bele boje, na kojoj se dodaju crni(beli) px iz pts2
+    image=np.zeros((h, w), np.uint8) #kreiranje nove slike crne boje, na kojoj se dodaju beli(true) px iz pts2
+    #image=image<255
     #for i in range(h):
     #   for j in range(w):
     #      image[i][j] = 255
 
 ##################boja piksela
-    for i in pts2:
+    for i in pts2:  
         image[i[0],i[1]] = 255    
     #cv2.imwrite('D:\Project-tumor-detection\segmentacija\maske\patch_size\size 40 (clean) - Copy.jpg', image)
-
+    ret1, image = cv2.threshold(image,100,255,cv2.THRESH_BINARY)
+    
     cv2.imshow('img4', image)
     cv2.waitKey(0)
+
     return image
     
 
@@ -155,7 +157,7 @@ def main(PATCH_SIZE, image):
     #for filename in files_1:
         #filename = 'D:\\Project-tumor-detection\\slike\\test\\convex_hull\\normal-bones\\*.jpeg'
         
-        #image = cv2.imread(filename)
+    #    image = cv2.imread(filename)
 
         #image = cv2.imread(filename) # bez parametra 0!!!!!!!!
         #print(image)
@@ -167,7 +169,7 @@ def main(PATCH_SIZE, image):
     #image_name = ['size 10', 'size 15', 'size 20', 'size 25', 'size 30', 'size 35', 'size 40', 'size 45', 'size 50'] 
     #PATCH_SIZE = 30
 
-    r = 0
+    #r = 0
     
     
     
@@ -209,14 +211,18 @@ def main(PATCH_SIZE, image):
     #cv2.imwrite(name_new_image, new_image)
     #cv2.imwrite(os.path.join(path, "\\", image_name[r], ".jpeg"), new_image)
     
-    clean_im = CleanImage(image, pts2)
+    clean_im = CleanImage(pts2,h,w)
     #print("CleanImage", i)
     print(time.time())
     #cv2.imwrite(filename, clean_im)
 
-    r += 1
+    #r += 1
 
     return clean_im, pts2
+
+
+
+#def IntoPolygon(array_hull,image1)
 
 
 
@@ -253,19 +259,25 @@ def erosion_func(img):
 
 
 if __name__ == "__main__" :
-    
+    '''
     PATCH_SIZE = 45
+    img = cv2.imread(r'D:\Project-tumor-detection\segmentacija\maske\patch_size\801.jpg')
+    
     main(PATCH_SIZE, img)
     
     '''
     
-    image = cv2.imread(r'D:\Project-tumor-detection\segmentacija\maske\patch_size\548-2.jpg')
-    cv2.imshow('img2', image)
-    cv2.waitKey(0)
+    image1 = cv2.imread(r'D:\\Project-tumor-detection\\slike\\test\\roi\\prewitt\\131.jpg')
+    #ret1, image1 = cv2.threshold(image1,100,255,cv2.THRESH_BINARY)
+    #print(image1 >= 255)
+    image = image1 >= 255
+
+    # cv2.imshow('img2', image)
+    # cv2.waitKey(0)
     
     
-    h = np.size(image, 0)
-    w = np.size(image, 1)
+    h = np.size(image1, 0)
+    w = np.size(image1, 1)
 
     """
     w=400
@@ -303,21 +315,22 @@ if __name__ == "__main__" :
     pts2 = CreateNewPoints(pts_win, win_px_number, average_px_number, pts_2)
     print("CreateNewPoints")
 
-    ret1, bin_image = cv2.threshold(image,100,255,cv2.THRESH_BINARY)
+    #ret1, bin_image = cv2.threshold(image,100,255,cv2.THRESH_BINARY)
     
 
     ####################  DILATION!!!!
     
 
-    new_image, array_hull = GetPolygon(pts2, bin_image)
+    new_image, array_hull = GetPolygon(pts2, image1)
     print("GetPolygon")
 
-    cv2.imshow("img3", new_image)
-    cv2.waitKey(0)
-    clean_im = CleanImage(image, pts2)
+    #cv2.imshow("img3", new_image)
+    #cv2.waitKey(0)
+    clean_im = CleanImage(pts2,h,w)
+    #cv2.imwrite('D:\Project-tumor-detection\segmentacija\maske\patch_size\801.jpg', clean_im)
     print("CleanImage")
     
-    print(array_hull) ########### koordinate temena poligona
+    #print(array_hull) ########### koordinate temena poligona
 
 
 #######################   OBRNUTE KOORDINATE    #######################
@@ -327,17 +340,17 @@ if __name__ == "__main__" :
 
 
 ############################ POLYFIT #################################
-    print("spline")
-    for i in array_hull: #########pts2
-        x_coord = i[0]
-        y_coord = i[1]
+    #print("spline")
+    # for i in array_hull: #########pts2
+    #     x_coord = i[0]
+    #     y_coord = i[1]
     
-        plt.plot(x_coord, y_coord, 'ro', ms='5')
+    #     plt.plot(x_coord, y_coord, 'ro', ms='5')
     #plt.show()
 
-    center = centroid(array_hull)
-    new_pts = calc_angle(array_hull, center)
-    xP, yP = curve_fit(new_pts)
+    #center = centroid(array_hull)
+    #new_pts = calc_angle(array_hull, center)
+    #xP, yP = curve_fit(new_pts)
 
     #for x in xP:
     #    for y in yP:
@@ -493,4 +506,4 @@ if __name__ == "__main__" :
     plt.show()
 
     """
-    '''
+    

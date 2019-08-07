@@ -6,8 +6,7 @@ import numpy as np
 
 
 from roi_polygon import SetPixels, GetPolygon, preprocess_array, dilation_func
-from polygon_correct2  import GetWindows, BlackPointsNumber, AveragePixelNumber, CreateNewPoints, CleanImage
-import glob
+from polygon_correct import GetWindows, BlackPointsNumber, AveragePixelNumber, CreateNewPoints, CleanImage
 #from histogram import BlackPointsNumber_2
 
 
@@ -34,8 +33,8 @@ def NewPts(pts2, PATCH_SIZE):
                 #print("j", j)
                 pts_new.remove(j)
 
-    # print("pts", pts2)
-    # print("new pts", pts_new)
+    print("pts", pts2)
+    print("new pts", pts_new)
 
     return pts_new
 
@@ -45,7 +44,7 @@ def CreateNewPtsTexture(image_grayscale, pts_new, PATCH_SIZE):
 
     for i in pts_new:
         #patch za grayscale sliku
-        patch = image_grayscale[i[0]:i[0] + PATCH_SIZE, i[1]:i[1] + PATCH_SIZE]
+        patch = image[i[0]:i[0] + PATCH_SIZE, i[1]:i[1] + PATCH_SIZE]
         texture_patches.append(patch) 
 
     return texture_patches
@@ -112,38 +111,30 @@ def GLCM_features(image_grayscale, texture_patches):
     dissimilarity = []
     correlation = []
 
-    # for patch in texture_patches:
-    glcm = greycomatrix(image_grayscale, [1], [0], 256, symmetric=True, normed=True) ##### ispravlajti parametre !!!!!
+    for patch in texture_patches:
+        glcm = greycomatrix(patch, [5], [0], 256, symmetric=True, normed=True) ##### ispravlajti parametre !!!!!
 
-    # contrast.append(greycoprops(glcm, 'contrast')[0][0])
-    # energy.append(greycoprops(glcm, 'energy')[0][0])
-    # homogeneity.append(greycoprops(glcm, 'homogeneity')[0][0])    
-    # dissimilarity.append(greycoprops(glcm, 'dissimilarity')[0, 0])
-    # correlation.append(greycoprops(glcm, 'correlation')[0][0])
-
-    # racunati feature samo za sliku (ne za patch)
-
-    contrast=(greycoprops(glcm, 'contrast')[0][0])
-    energy=(greycoprops(glcm, 'energy')[0][0])
-    homogeneity=(greycoprops(glcm, 'homogeneity')[0][0])    
-    dissimilarity=(greycoprops(glcm, 'dissimilarity')[0, 0])
-    correlation=(greycoprops(glcm, 'correlation')[0][0])
+        contrast.append(greycoprops(glcm, 'contrast')[0][0])
+        energy.append(greycoprops(glcm, 'energy')[0][0])
+        homogeneity.append(greycoprops(glcm, 'homogeneity')[0][0])    
+        dissimilarity.append(greycoprops(glcm, 'dissimilarity')[0, 0])
+        correlation.append(greycoprops(glcm, 'correlation')[0][0])
 
     glcm_features = [contrast, energy, homogeneity, dissimilarity, correlation]
 
-    print('contrast')#, contrast)
-    print('energy')#, energy)
-    print('homogeneity')#, homogeneity)
-    print('dissimilarity')#, dissimilarity)
-    print('correlation')#, correlation)
+    print('contrast', contrast)
+    print('energy', energy)
+    print('homogeneity', homogeneity)
+    print('dissimilarity', dissimilarity)
+    print('correlation', correlation)
 
 
-    # print(len(pts_new))
-    # print(len(texture_patches))
-    # print(len(contrast))
-    # print(len(energy))
-    # print(len(homogeneity))
-    # print(len(correlation))
+    print(len(pts_new))
+    print(len(texture_patches))
+    print(len(contrast))
+    print(len(energy))
+    print(len(homogeneity))
+    print(len(correlation))
 
     return glcm_features
 
@@ -154,85 +145,49 @@ def GLCM_features(image_grayscale, texture_patches):
     return fig
 
 
-#----------------------------------------------------
 
 
-def main_texure(filename_1, filename_2):
-    ###### ispravak ----- cela slika, bez patcheva
-    
-    
-    '''filename_1 - grayscale image; filename_2 - binary image (edges);
-    returns files_array - paths of images and features_ml - 5 texture features for each image'''
-    files_array = []
-    features_ml = []
-    texture_features = []
-    for files_1, files_2 in zip(filename_1, filename_2):
-        files_array.append(files_1)
-
-        image_grayscale = cv2.imread(files_1,0)
-        image = cv2.imread(files_2,0)
-        texture_patches = image # visak parametar !!!!!!!!
-    #     h = np.size(image, 0)
-    #     w = np.size(image, 1)
-    #     #h, w, r = image.shape 
-
-    #     PATCH_SIZE = 15 #10
-
-    # #call functions from module polygon_correct
-        
-    #     pts_array, pts, img1 = SetPixels(image)
-    #     print("SetPatch")
-    #     pts_win, pts_2 = GetWindows(image, pts, h, w, PATCH_SIZE)
-    #     print("GetWindows")
-    #     win_px_number = BlackPointsNumber(pts_win, PATCH_SIZE) 
-    #     print("BlackPointsNumber")
-    #     average_px_number = AveragePixelNumber(win_px_number)
-    #     print("AveragePixelNumber")
-        
-
-    #     pts2 = CreateNewPoints(pts_win, win_px_number, average_px_number, pts_2)
-    #     print("CreateNewPoints")
-    #     image_edge = CleanImage(image, pts2)
-    #     # cv2.imshow("edges", image_edge)
-    #     # cv2.waitKey(0)
-
-    # #find coordinates for texture
-    #     pts_new = NewPts(pts2, PATCH_SIZE)
-
-    # #find texture and features  
-    #     texture_patches = CreateNewPtsTexture(image_grayscale, pts_new, PATCH_SIZE)
-
-        texture = GLCM_features(image_grayscale, texture_patches) 
-        # print('texture',texture)
-
-        texture_features.append(texture)
-        # print('texture_features',texture_features)
-    
-    features_ml = texture_features
-    # img_features = []
-    #get feature_ml
-    # for i in range(len(texture_features)):
-    #     img_features = [] # list of 5 features for one image
-    #     for j in range(5):
-    #         img_features.append(texture_features[i][j])
-    #     features_ml.append(img_features)
-        
-        
 
 
-    return files_array, features_ml
+
 
 if __name__ == '__main__':
+
+    image_grayscale = cv2.imread(r'D:\Project-tumor-detection\segmentacija\maske\canny-detector-femur\1672.jpg',0)
+    image = cv2.imread(r'D:\Project-tumor-detection\segmentacija\maske\patch_size\801.jpg',0)
     
+    h = np.size(image, 0)
+    w = np.size(image, 1)
+    #h, w, r = image.shape 
+
+    PATCH_SIZE = 10
+
+#call functions from module polygon_correct
     
-    filename_1 = glob.glob('D:\\Project-tumor-detection\\slike\\test\\New folder\\*.jpeg')
-    filename_2 = glob.glob('D:\\Project-tumor-detection\\slike\\test\\New folder (2)\\*.jpeg')
-    files_array, features_ml = main_texure(filename_1, filename_2)
-    print(features_ml)
+    pts_array, pts, img1 = SetPixels(image)
+    print("SetPatch")
+    pts_win, pts_2 = GetWindows(image, pts, h, w, PATCH_SIZE)
+    print("GetWindows")
+    win_px_number = BlackPointsNumber(pts_win, PATCH_SIZE) 
+    print("BlackPointsNumber")
+    average_px_number = AveragePixelNumber(win_px_number)
+    print("AveragePixelNumber")
     
 
-        
-        
+    pts2 = CreateNewPoints(pts_win, win_px_number, average_px_number, pts_2)
+    print("CreateNewPoints")
+    image_edge = CleanImage(image, pts2)
+    cv2.imshow("edges", image_edge)
+    cv2.waitKey(0)
+
+#find coordinates for texture
+    pts_new = NewPts(pts2, PATCH_SIZE)
+
+#find texture and features  
+    texture_patches = CreateNewPtsTexture(image_grayscale, pts_new, PATCH_SIZE)
+    GLCM_features(image_grayscale, texture_patches) 
+
+
 
 
 

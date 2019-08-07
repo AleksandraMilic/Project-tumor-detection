@@ -151,7 +151,6 @@ def CleanImage(image, pts2):
 
     # cv2.imshow('img4', image)
     # cv2.waitKey(0)
-
     return image
     
 
@@ -160,7 +159,7 @@ def main(PATCH_SIZE, image):
 
     #files_1 = glob.glob('D:\\Project-tumor-detection\\slike\\test\\convex_hull\\normal-bones\\*.png') 
     #for filename in files_1:
-        #filename = 'D:\\Project-tumor-detection\\slike\\test\\convex_hull\\normal-bones\\*.jpg'
+        #filename = 'D:\\Project-tumor-detection\\slike\\test\\convex_hull\\normal-bones\\*.jpeg'
         
         #image = cv2.imread(filename)
 
@@ -211,10 +210,10 @@ def main(PATCH_SIZE, image):
     print("GetPolygon")
     print(time.time())
 
-    #name_new_image = "D:\\Project-tumor-detection\\segmentacija\\maske\patch_size\\" + image_name[r] + ".jpg"
+    #name_new_image = "D:\\Project-tumor-detection\\segmentacija\\maske\patch_size\\" + image_name[r] + ".jpeg"
     #new_image.save(name_new_image)
     #cv2.imwrite(name_new_image, new_image)
-    #cv2.imwrite(os.path.join(path, "\\", image_name[r], ".jpg"), new_image)
+    #cv2.imwrite(os.path.join(path, "\\", image_name[r], ".jpeg"), new_image)
     
     clean_im = CleanImage(image, pts2)
     #print("CleanImage", i)
@@ -260,8 +259,8 @@ def erosion_func(img):
 
 
 if __name__ == "__main__" :
-    file_1 = glob.glob('D:\\Project-tumor-detection\\slike\\test\\edge-operators\\canny\\*.jpg')
-    file_2 = glob.glob('D:\\Project-tumor-detection\\slike\\test\\convex_hull\\test-img\\*.jpg')
+    file_1 = glob.glob('D:\\Project-tumor-detection\\slike\\test\\edge-operators\\canny\\*.jpeg')
+    file_2 = glob.glob('D:\\Project-tumor-detection\\slike\\test\\convex_hull\\test-img\\*.jpeg')
     for i,j in zip(file_1,file_2):
         image = cv2.imread(i)
         # image = erosion_func(image)
@@ -269,7 +268,7 @@ if __name__ == "__main__" :
 
         # cv2.imshow('img2', image)
         # cv2.waitKey(0)
-        PATCH_SIZE = 40
+        PATCH_SIZE = 30
         clean_im,k,l=main(PATCH_SIZE, image)
         cv2.imwrite(j, np.array(clean_im))
         

@@ -33,7 +33,10 @@ for filename_1 in files_1:
 
     #img_enh = cv2.equalizeHist(img)
     img_enh = gammaTransform(0.8, img)
-    img_enh = cv2.equalizeHist(img_enh)
+    img_enh = gammaTransform(0.8, img_enh)
+    #img_enh = cv2.equalizeHist(img_enh)
+    #img_enh = log_func(img_enh)
+    #img_enh = cv2.equalizeHist(img_enh)
 
     #img_enh = gammaTransform(0.7, img_enh)
     #img_enh = log_func(img_enh)

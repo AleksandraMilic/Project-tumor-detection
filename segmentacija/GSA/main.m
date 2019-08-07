@@ -173,7 +173,8 @@ beta=0.2
                del_n_xy_f=max(del_n_xy,del_n_xym1);
         end
         
-       del_sort=[del_n_xy_f,del_nw_xy_f,del_e_xy_f,del_se_xy_f,del_s_xy_f,del_sw_xy_f,del_w_xy_f,del_ne_xy_f];  
+        
+        del_sort=[del_n_xy_f,del_nw_xy_f,del_e_xy_f,del_se_xy_f,del_s_xy_f,del_sw_xy_f,del_w_xy_f,del_ne_xy_f];
        del_sort=sort(del_sort);
        del_sort1(i,j)=median(del_sort);
        if(del_sort1(i,j)==0) %???

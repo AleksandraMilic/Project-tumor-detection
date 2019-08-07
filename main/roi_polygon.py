@@ -52,7 +52,7 @@ def check_if_binary(img):
 def SetPixels(image):
     """return np.array of all black pixel and binary image"""
     print("type", type(image))
-    # image = dilation_func(image)
+    image = dilation_func(image)
     # image = binarize(image, threshold=100)
     ret1, image = cv2.threshold(image,100,255,cv2.THRESH_BINARY) #ovo radi
     

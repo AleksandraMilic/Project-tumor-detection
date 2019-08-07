@@ -3,12 +3,24 @@ import cv2
 from matplotlib import pyplot as plt
 import numpy as np
 
+def thresh(img, sigma=0.33): ############ sigma  ????
+	# compute the median of the single channel pixel intensities
+    v = np.median(img)
+
+    # apply automatic Canny edge detection using the computed median
+    lower = int(max(0, (1.0 - sigma) * v))
+
+    return lower
 
 
-img = cv2.imread(r'D:\Petnica projekat\tumor library - Copy\distal femur\121.jpg',0)
-ret1,thresh1 = cv2.threshold(img,100,255,cv2.THRESH_BINARY) 
-ret2,thresh2 = cv2.threshold(img,30,255,cv2.THRESH_TOZERO) #127
-img2 = cv2.imwrite(r'D:\Petnica projekat\tumor library - Copy\distal femur\121 - Copy.jpg',thresh2)
+
+img = cv2.imread(r'D:\Project-tumor-detection\segmentacija\maske\canny-detector-femur\4278.jpg',0)
+
+low_thresh = thresh(img, sigma = 0.33)
+
+ret1,thresh1 = cv2.threshold(img,low_thresh,255,cv2.THRESH_BINARY) 
+ret2,thresh2 = cv2.threshold(img,low_thresh,255,cv2.THRESH_TOZERO) #127
+#img2 = cv2.imwrite(r'D:\Petnica projekat\tumor library - Copy\distal femur\121 - Copy.jpg',thresh2)
 
 
 
