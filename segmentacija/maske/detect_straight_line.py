@@ -4,7 +4,11 @@ import glob
 import matplotlib.pyplot as plt
 from contours import fill_area, get_contours
 
-
+from skimage.color import rgb2gray
+from skimage import data
+from skimage.filters import gaussian
+from skimage.segmentation import active_contour
+import itertools
 
 ####################
 def erosion_func(img):
@@ -92,7 +96,7 @@ def StraightLineDetection(img, edge):
 ####################### EDGE DETECTORS #############################
 
 
-def canny(img, sigma=0.33):
+def canny(img, sigma):
 	# compute the median of the single channel pixel intensities
     v = np.median(img)
 
@@ -175,7 +179,7 @@ def canny_detector(files_1,files_2):
         # cv2.imshow("edge", edge)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
-        cv2.imwrite(filename_2, edge)
+        # cv2.imwrite(filename_2, edge)
 
     return
 
@@ -311,58 +315,109 @@ def prewitt(files_1,files_2):
     return 
     
 
+def log_func(img):
+
+    img_log = (np.log(img+1)/(np.log(1+np.max(img))))*255# Specify the data type
+    #print(np.log(1+np.max(img)))
+    img_log = np.array(img_log,dtype=np.uint8)
     
+    return img_log
+
 def edge_tumor(img):
     """returns edge inside bone (where is tumor)"""
+    alpha = 1.2 #Enter the alpha value [1.0-3.0]1.2
+    beta = 1  #Enter the beta value [0-100]1
 
-    # cv2.imshow("img", img)
-    # cv2.waitKey(0)
+    # img = cv2.bitwise_not(img)
+    ##################### prosvetliti pre ili posle???
 
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-    
-    # img = HistogramEq(img)
-    
-    alpha = 1 #Enter the alpha value [1.0-3.0]
-    beta = 0  #Enter the beta value [0-100]
-    
-    img = clahe.apply(img)
+    cv2.imshow("img", img)
+    cv2.waitKey(0)
 
-    # for y in range(img.shape[0]): 
-    #     for x in range(img.shape[1]):
-    #         #for c in range(im.shape[2]):
-    #         img[y,x] = np.clip(alpha*img[y,x] + beta, 0, 255)
-    # cv2.imshow("i1", img)
-    # cv2.waitKey(0)
+    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8)) #8,8
+
     
-    gamma = 0.09 #0.1
-    img = gammaTransform(gamma,img)
-    
+
     for y in range(img.shape[0]): 
         for x in range(img.shape[1]):
             #for c in range(im.shape[2]):
             img[y,x] = np.clip(alpha*img[y,x] + beta, 0, 255)
     # cv2.imshow("i2", img)
     # cv2.waitKey(0)
+
+    img = HistogramEq(img)
+    # cv2.imshow("img h", img)
+    # cv2.waitKey(0)
+
+    img = clahe.apply(img)
+    
+    cv2.imshow("img c", img)
+    cv2.waitKey(0)
+
+    for y in range(img.shape[0]): 
+        for x in range(img.shape[1]):
+            #for c in range(im.shape[2]):
+            img[y,x] = np.clip(alpha*img[y,x] + beta, 0, 255)
+
+    gamma = 0.09 #0.09 - for black img, 0.9 -for inverse img
+    # img=log_func(img)
+    # cv2.imshow("i1", img)
+    # cv2.waitKey(0)
+    # # inversion
+    img = gammaTransform(gamma,img)
+    # cv2.imshow("i1", img)
+    # cv2.waitKey(0)
+    
+    
+
+
     
     ### blur
 
     # img = cv2.GaussianBlur(img, (11, 11), 0) #9,9 11
-    im = cv2.bilateralFilter(img,19,30,30)
-    # im = cv2.medianBlur(im,19)
+    
+    # im = cv2.bilateralFilter(img,9,30,30)
+    
+    # img = cv2.medianBlur(img,9)
+    
+    # blurred_image = gaussian_filter(gray_image,sigma=20)
+    
+    edge = canny(img, sigma=33)
+    # #img_prewitt
+    # kernelx = np.array([[1,1,1],[0,0,0],[-1,-1,-1]])
+    # kernely = np.array([[-1,0,1],[-1,0,1],[-1,0,1]])
+    # img_prewittx = cv2.filter2D(img, -1, kernelx)
+    # img_prewitty = cv2.filter2D(img, -1, kernely)
+    # img_prewitt = img_prewittx + img_prewitty
+    # ret1, edge = cv2.threshold(img_prewitt,20,255,cv2.THRESH_BINARY)
 
-    edge = canny(img, sigma=0.33)
-        #r = StraightLineDetection(edge, edge)
-    # cv2.imshow("edge", edge)
-    # cv2.waitKey(0)
+    # # laplacian
+    # img_laplacian = cv2.Laplacian(img, cv2.CV_8U)
+    # ret1, img_laplacian = cv2.threshold(img_laplacian,20,255,cv2.THRESH_BINARY)
+    # edge = img_laplacian
+
+    # sobel
+    # img_sobelx = cv2.Sobel(img,cv2.CV_8U,1,0,ksize=5)
+    # img_sobely = cv2.Sobel(img,cv2.CV_8U,0,1,ksize=5)
+    # img_sobel = img_sobelx + img_sobely
+    # ret1, img_sobel = cv2.threshold(img_sobel,20,255,cv2.THRESH_BINARY)
+    # edge = img_sobel
+
+    r = StraightLineDetection(edge, edge)
+    cv2.imshow("edge", edge)
+    cv2.imshow("line", r)
+
+    cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
-    return edge
+    return r
 
 
 
 
 
 if __name__ == '__main__':
+    '''
     files_1 = glob.glob('D:\\Project-tumor-detection\\slike\\training&test set\\*.jpg')
     
     files_canny = glob.glob('D:\\Project-tumor-detection\\slike\\training&test set-edge\\*.jpg')
@@ -370,26 +425,166 @@ if __name__ == '__main__':
     files_prewitt = glob.glob('D:\\Project-tumor-detection\\slike\\test\\edge-operators\prewitt\\*.jpg')
 
     files_hough = glob.glob("D:\\Project-tumor-detection\\slike\\test\\hough-polygon\\*.jpg")
+    '''
     #print("canny")
-    canny_detector(files_1, files_canny)
+    # canny_detector(files_1, files_canny)
 
     #sobel(files_1)#, files_sobel)
 
     #print("prewitt")
     #prewitt(files_1, files_prewitt)
 
+    import numpy as np
+    import argparse
+    import cv2
+    import signal
+    
+    from functools import wraps
+    import errno
+    import os
+    import copy
+    
 
-    """
-    for im, e, hough in zip(files_1, files_canny, files_hough):
-        img = cv2.imread(im,0)
+    
+    files_1 = glob.glob('D:\\Project-tumor-detection\\slike\\test\\hough-roi\\roi-2\\masks\\mask2\\*.jpg')
+    # files_1 = glob.glob('D:\\Project-tumor-detection\\slike\\test\\preprocessing\\*.jpg')
+    files_canny = glob.glob('D:\\Project-tumor-detection\\slike\\training&test set-edge\\*.jpg')
+    files_sobel = glob.glob('D:\\Project-tumor-detection\\slike\\test\\normal-bones\\*.jpg')
+    files_prewitt = glob.glob('D:\\Project-tumor-detection\\slike\\test\\edge-operators\prewitt\\*.jpg')
+
+    files_hough = glob.glob("D:\\Project-tumor-detection\\slike\\test\\hough-polygon\\*.jpg")
+
+    for im, e, hough in zip(files_1, files_prewitt, files_hough):
+        
+        img = cv2.imread(im,0) #0
+        img = cv2.bitwise_not(img)
+
         # print(type(img))
-        edge=edge_tumor(img)
-
-        # edge = cv2.imread(e,0)
-        cv2.imshow("edge", edge)
-        # cv2.waitKey(0)
+        
+        # edge=edge_tumor(img)
+        
+        edge = cv2.imread(e,0)
         img1 = StraightLineDetection(img, edge)
+        # circles = cv2.HoughCircles(img,cv2.HOUGH_GRADIENT,1,20,param1=20,param2=10,minRadius=0,maxRadius=0)
+
+        
+        
+        gray = img1
+        # edge = cv2.imread(e,0)
+        # cv2.imshow("edge", edge)
+        # cv2.waitKey(0)
+        circles = None
+
+        minimum_circle_size = 100    #this is the range of possible circle in pixels you want to find
+        maximum_circle_size = 250     #maximum possible circle size you're willing to find in pixels 180
+
+        guess_dp = 1.0
+
+        number_of_circles_expected = 1          #we expect to find just one circle
+        breakout = False
+
+        max_guess_accumulator_array_threshold = 100     #minimum of 1, no maximum, (max 300?) the quantity of votes 
+                                                        #needed to qualify for a circle to be found.
+        circleLog = []
+        circleLog_2 = []
+
+        guess_accumulator_array_threshold = max_guess_accumulator_array_threshold
+
+        while guess_accumulator_array_threshold > 1 and breakout == False:
+            #start out with smallest resolution possible, to find the most precise circle, then creep bigger if none found
+            guess_dp = 1.0
+            print("resetting guess_dp:" + str(guess_dp))
+            while guess_dp < 9 and breakout == False:
+                guess_radius = maximum_circle_size
+                print("setting guess_radius: " + str(guess_radius))
+                print(circles is None)
+                while True:
+
+                    #HoughCircles algorithm isn't strong enough to stand on its own if you don't
+                    #know EXACTLY what radius the circle in the image is, (accurate to within 3 pixels) 
+                    #If you don't know radius, you need lots of guess and check and lots of post-processing 
+                    #verification.  Luckily HoughCircles is pretty quick so we can brute force.
+
+                    print("guessing radius: " + str(guess_radius) + 
+                            " and dp: " + str(guess_dp) + " vote threshold: " + 
+                            str(guess_accumulator_array_threshold))
+
+                    circles = cv2.HoughCircles(gray, 
+                        cv2.HOUGH_GRADIENT, 
+                        dp=guess_dp,               #resolution of accumulator array.
+                        minDist=100,                #number of pixels center of circles should be from each other, hardcode
+                        param1=50,
+                        param2=guess_accumulator_array_threshold,
+                        minRadius=(guess_radius-3),    #HoughCircles will look for circles at minimum this size
+                        maxRadius=(guess_radius+3)     #HoughCircles will look for circles at maximum this size
+                        )
+
+                    if circles is not None:
+                        if len(circles[0]) == number_of_circles_expected:
+                            print("len of circles: " + str(len(circles)))
+                            circleLog.append(copy.copy(circles))
+                            circleLog_2.append(np.ndarray.tolist(copy.copy(circles)))
+                            
+                            print("k1")
+                        break
+                        circles = None
+                    guess_radius -= 5 
+                    if guess_radius < 40:
+                        break
+
+                guess_dp += 1.5
+
+            guess_accumulator_array_threshold -= 2
+
+        #Return the circleLog with the highest accumulator threshold
+        # print(type(circleLog))
+        # circleLog = list(set(circleLog))
+        # circleLog.sort()
+        circleLog_2 = list(num for num,_ in itertools.groupby(circleLog_2))
+        print(circleLog_2)
+
+        # ensure at least some circles were found
+        for cir in circleLog_2: # only one circle
+            # convert the (x, y) coordinates and radius of the circles to integers
+            cir = np.array(cir)
+            output = np.copy(gray)
+
+            if (len(cir) > 1):
+                print("FAIL before")
+                exit()
+            print(cir[0, :])
+
+            cir = np.round(cir[0, :]).astype("int")
+
+            for (x, y, r) in cir:
+                cv2.circle(output, (x, y), r, (255, 255, 255), 2)
+                cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (255, 255, 255), -1)
+                
+                # s = np.linspace(0, 2*np.pi, 400)
+                # x2 = x + r*np.cos(s)
+                # y2 = y + r*np.sin(s)
+                
+                # init = np.array([x2, y2]).T
+                # snake = active_contour(gaussian(img, 3), init, alpha=0.015, beta=10, gamma=0.001)
+                # print(snake)
+
+
+                # fig, ax = plt.subplots(figsize=(7, 7))
+                # ax.imshow(img, cmap=plt.cm.gray)
+                # ax.plot(init[:, 0], init[:, 1], '--r', lw=3)
+                # ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3)
+                # ax.set_xticks([]), ax.set_yticks([])
+                # ax.axis([0, img.shape[1], img.shape[0], 0])
+
+                # plt.show()
+        cv2.imshow("output", np.hstack([gray, output]))
+        cv2.waitKey(0)
+    
+        # img1 = StraightLineDetection(img, edge)
+        
+        # cv2.imshow("i", img1)
+        # cv2.waitKey(0)
         
         # cv2.imwrite(hough, img1)
         # img2 = fill_area(img1)
-    """
+    
