@@ -3,7 +3,7 @@ import numpy as np
 # cv2.imshow('a', img)
 # cv2.waitKey(0)
 
-def get_contours(img, im):
+def get_contours(img, im_rgb):
         
     contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # cv2.imshow("img2", img)
@@ -11,13 +11,33 @@ def get_contours(img, im):
 
     print(contours)
     print(type(contours))
-    cv2.drawContours(im, contours, -1, 255, 5) #(255,255,0)
+    cv2.drawContours(im_rgb, contours, -1, (255,0,0), 5) #(255,255,0)
+    
     #cv2.fillPoly(im, pts = contours, color=(255,255,255))
 
-    # cv2.imshow("contour", im)
+    # cv2.imshow("contour", im_rgb)
     # cv2.waitKey(0)
 
-    return im
+    return im_rgb
+
+def get_cnt_img(img):
+    
+    contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    # cv2.imshow("img2", img)
+    contours = np.array(contours)
+    h = np.size(img, 0)
+    w = np.size(img, 1)
+    image2 = np.zeros((h, w), np.uint8)
+    
+    print(contours)
+    print(type(contours))
+    cv2.drawContours(image2, contours, -1, 255, 3)
+    
+    # cv2.imshow("cnt", image2)
+    # cv2.waitKey(0)
+
+    return image2
+
 
 ########## fill holes
 
@@ -68,8 +88,8 @@ def fill_area(img):
     return im_out
 
 if __name__ == "__main__":
-    im = cv2.imread('D:\\Project-tumor-detection\\slike\\test\\roi\\canny\\13.jpg')
-    img = cv2.imread('D:\\Project-tumor-detection\\slike\\test\\roi\\canny\\13.jpg',0)
+    im = cv2.imread('D:\\Project-tumor-detection\\slike\\test\\edge-operators\\canny\\age 1,m.jpeg')
+    img = cv2.imread('D:\\Project-tumor-detection\\slike\\test\\edge-operators\\canny\\age 1,m.jpeg',0)
     # cv2.imshow("img", img)
 
     get_contours(img, img)
